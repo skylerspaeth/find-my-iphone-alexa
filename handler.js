@@ -21,6 +21,7 @@ module.exports.findMyIphone = (event, context, callback) => {
             if (requestedDevice) {
                 deviceResponse = 'I\'m playing a sound on ' + deviceNameRequested;
                 requestedDevice.alert();
+		console.log(requestedDevice.location());
             } else {
                 deviceResponse = 'I can\'t find ' + deviceNameRequested + ' in ' + devices.map((device) => device.name).join(', ');
             }
@@ -67,6 +68,13 @@ function getIcloud() {
                             console.log('Beeping', device.name);
                         });
                     };
+
+		    device.location = function() {
+			icloud.getLocationOfDevice(device.id, function(err) {
+			    if (err) { console.log('err', err); }
+			    console.log('Found', device.name);
+		        });
+		    };
                 });
                 callback(null, devices);
             }
