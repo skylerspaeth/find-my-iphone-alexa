@@ -6,6 +6,8 @@ To begin setting up this skill, you must create an Amazon Developer account.
 Click [here](https://developer.amazon.com/edw/home.html) to access the Amazon Developer Console and begin the skill creation.
 Select "Get Started" under "Alexa Skills Kit" and follow the instructions to setup your skill.
 
+Amazon provides a tutorial on how to do this [here](https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/registering-and-managing-alexa-skills-in-the-developer-portal) if you'd like more detail.
+
 With this repo's current code, here is the **intent schema** we are using:
 ```
 {
@@ -27,5 +29,6 @@ With this repo's current code, here is the **intent schema** we are using:
 }
 ```
 
-
-Amazon provides a tutorial on how to do this [here](https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/registering-and-managing-alexa-skills-in-the-developer-portal).
+Add 2 custom slots matching `device-config.js`. For me, this looks like:
+⋅⋅*Relationship: `mom,moms,mom's,dad,dads,dad's,mine,my,skyler,skylers,skyler's,claire,claires,claire's,doug,dougs,doug's`
+⋅⋅*Device: `phone,iphone,pad,ipad,phones,iphones,pads,ipads`
