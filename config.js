@@ -4,7 +4,7 @@ module.exports = {
     password: '004Peace14',
 
     // Address to check distance of device from
-    address: '7201 Oak Meadow Dr Austin TX'
+    address: '7201 Oak Meadow Dr Austin TX',
 
     // Units when calculating distance: only 'km' or 'mi' for now
     distanceUnits: 'mi'
