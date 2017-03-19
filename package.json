@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.15.3",
     "find-my-iphone": "^1.1.1"
   }
 }
