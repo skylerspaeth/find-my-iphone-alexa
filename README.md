@@ -30,5 +30,5 @@ With this repo's current code, here is the **intent schema** we are using:
 ```
 
 Add 2 custom slots matching `device-config.js`. For me, this looks like:
-⋅⋅*Relationship: `mom,moms,mom's,dad,dads,dad's,mine,my,skyler,skylers,skyler's,claire,claires,claire's,doug,dougs,doug's`
-⋅⋅*Device: `phone,iphone,pad,ipad,phones,iphones,pads,ipads`
+-Relationship: `mom,moms,mom's,dad,dads,dad's,mine,my,skyler,skylers,skyler's,claire,claires,claire's,doug,dougs,doug's`
+-Device: `phone,iphone,pad,ipad,phones,iphones,pads,ipads`
