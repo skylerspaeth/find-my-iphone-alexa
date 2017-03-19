@@ -1,6 +1,8 @@
 'use strict';
 
 const getDeviceByName = require('./device-config').findDevice;
+const config = require('./config');
+const axios = require('axios');
 
 module.exports.findMyIphone = (event, context, callback) => {
 
@@ -13,44 +15,65 @@ module.exports.findMyIphone = (event, context, callback) => {
         if (err) { callback(err, null); }
         else {
             var namesToDevices = {},
-                deviceResponse
+                deviceResponsePromise
             ;
+            
             devices.forEach(function(device) { namesToDevices[device.name] = device});
             const requestedDevice = namesToDevices[deviceNameRequested];
+	        console.log("requestedDevice", requestedDevice);
 
             if (requestedDevice) {
-                deviceResponse = 'I\'m playing a sound on ' + deviceNameRequested;
                 requestedDevice.alert();
-		console.log(requestedDevice.location());
+                deviceResponsePromise = makeDeviceResponse(requestedDevice);
             } else {
-                deviceResponse = 'I can\'t find ' + deviceNameRequested + ' in ' + devices.map((device) => device.name).join(', ');
+                deviceResponsePromise = Promise.resolve('I can\'t find ' + deviceNameRequested + ' in ' + devices.map((device) => device.name).join(', '));
             }
 
-            const response = {
-              version: '1.0',
-              response: {
-                outputSpeech: {
-                  type: 'PlainText',
-                  //text: `Your lucky number is ${number}`,
-                  text: deviceResponse
-                },
-                shouldEndSession: true,
-              },
-            };
-          
-            callback(null, response);
+            deviceResponsePromise.then(function(deviceResponse) {
+                console.log('builtResponseXXX');
+
+                const response = {
+                  version: '1.0',
+                  response: {
+                    outputSpeech: {
+                      type: 'PlainText',
+                      text: deviceResponse
+                    },
+                    shouldEndSession: true,
+                  },
+                };
+              
+                callback(null, response);
+            })
+
         }
     });
+
+    function makeDeviceResponse(requestedDevice) {
+
+        var deviceLat = requestedDevice.location.latitude;
+        var deviceLng = requestedDevice.location.longitude;
+
+        var ext = config.address.split(' ').join('+');
+        var url = "http://maps.google.com/maps/api/geocode/json?address=" + ext;
+        return axios.get(url)
+            .then(function(response) {
+                    var homeLat = response.data.results[0].geometry.location.lat
+                    var homeLng = response.data.results[0].geometry.location.lng
+                    console.log("Selected Device Location: ", deviceLat, deviceLng, " Home Location: ", homeLat, homeLng);
+                    var distance = getDistanceFromLatLonInMi(deviceLat,deviceLng,homeLat,homeLng).toFixed(1);
+                    var distanceString = 'I\'m playing a sound on ' + deviceNameRequested + ', which is ' + distance + ' miles from here';
+                    console.log('distanceString', distanceString);
+                    return distanceString;
+            });
+    }
 
 };
 
 function getIcloud() {
-    var 
-        icloud = require("find-my-iphone").findmyphone,
-        credentials = require('./credentials')
-    ;
-    icloud.apple_id = credentials.username;
-    icloud.password = credentials.password;
+    var icloud = require("find-my-iphone").findmyphone;
+    icloud.apple_id = config.username;
+    icloud.password = config.password;
 
     return {
         getDevices: getDevices,
@@ -68,13 +91,6 @@ function getIcloud() {
                             console.log('Beeping', device.name);
                         });
                     };
-
-		    device.location = function() {
-			icloud.getLocationOfDevice(device.id, function(err) {
-			    if (err) { console.log('err', err); }
-			    console.log('Found', device.name);
-		        });
-		    };
                 });
                 callback(null, devices);
             }
@@ -91,6 +107,26 @@ function getIcloud() {
     }
 }
 
-//getIcloud().getFindableDevices(function(err, devices) {
-    //console.log(devices);
-//});
+
+
+// Pair1 = Device location
+// Pair2 = Home location
+function getDistanceFromLatLonInMi(lat1,lon1,lat2,lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  var mi = d*0.62137; // Distance in mi
+  console.log('miles distant', mi);
+  return mi;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
