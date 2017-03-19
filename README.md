@@ -47,10 +47,10 @@ Using utterances with slots allows you to turn a say something like `"Alexa, ask
 
 Update the configuration file with your details. Modify `example_config.js` to your needs, then rename it to `config.js`.
 The values are as follows:
-**`username`:** Apple ID email
-**`password`:** Apple ID password
-**`address`:** Assumed location of Echo Dot, used to check distance to device
-**`distanceUnits`:** Unit in which distance will be said
++ **`username`:** Apple ID email
++ **`password`:** Apple ID password
++ **`address`:** Assumed location of Echo Dot, used to check distance to device
++ **`distanceUnits`:** Unit in which distance will be said
 
 Use a deployer such as `serverless` to deploy the code to AWS. Insert your ARN into the `Alexa Skill Kit` page.
 
