@@ -3,6 +3,7 @@
 const getDeviceByName = require('./device-config').findDevice;
 const config = require('./config');
 const axios = require('axios');
+const geo = require('./lib/geo');
 
 module.exports.findMyIphone = (event, context, callback) => {
 
@@ -30,7 +31,6 @@ module.exports.findMyIphone = (event, context, callback) => {
             }
 
             deviceResponsePromise.then(function(deviceResponse) {
-                console.log('builtResponseXXX');
 
                 const response = {
                   version: '1.0',
@@ -61,7 +61,7 @@ module.exports.findMyIphone = (event, context, callback) => {
                     var homeLat = response.data.results[0].geometry.location.lat
                     var homeLng = response.data.results[0].geometry.location.lng
                     console.log("Selected Device Location: ", deviceLat, deviceLng, " Home Location: ", homeLat, homeLng);
-                    var distance = getDistanceFromLatLonInMi(deviceLat,deviceLng,homeLat,homeLng).toFixed(1);
+                    var distance = geo.getDistanceBetweenTwoCoordinates(deviceLat,deviceLng,homeLat,homeLng, {units:config.distanceUnits}).toFixed(1);
                     var distanceString = 'I\'m playing a sound on ' + deviceNameRequested + ', which is ' + distance + ' miles from here';
                     console.log('distanceString', distanceString);
                     return distanceString;
@@ -108,25 +108,3 @@ function getIcloud() {
 }
 
 
-
-// Pair1 = Device location
-// Pair2 = Home location
-function getDistanceFromLatLonInMi(lat1,lon1,lat2,lon2) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2-lat1);  // deg2rad below
-  var dLon = deg2rad(lon2-lon1); 
-  var a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-    ; 
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  var d = R * c; // Distance in km
-  var mi = d*0.62137; // Distance in mi
-  console.log('miles distant', mi);
-  return mi;
-}
-
-function deg2rad(deg) {
-  return deg * (Math.PI/180)
-}
