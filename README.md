@@ -27,8 +27,8 @@ With this repo's current code, here is the **intent schema** we are using:
     }
   ]
 }
-<script src="https://gist.github.com/skylerspaeth/1ed7553f75b2ae28670e3f51ea4a0e2d.js"></script>
 ```
+<script src="https://gist.github.com/skylerspaeth/1ed7553f75b2ae28670e3f51ea4a0e2d.js"></script>
 
 Add 2 custom slots matching `device-config.js`. For me, this looks like:
 * Relationship: `mom,moms,mom's,dad,dads,dad's,mine,my,skyler,skylers,skyler's,claire,claires,claire's,doug,dougs,doug's`
