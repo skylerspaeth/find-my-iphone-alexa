@@ -4,16 +4,47 @@ const getDeviceByName = require('./device-config').findDevice;
 const config = require('./config');
 const axios = require('axios');
 const geo = require('./lib/geo');
+const Alexa = require('alexa-sdk');
 
-module.exports.findMyIphone = (event, context, callback) => {
+exports.findMyIphone = function(event, context, callback) {
+    var alexa = Alexa.handler(event, context);
+    //alexa.appId = appId;
+    //alexa.dynamoDBTableName = 'highLowGuessUsers';
+    alexa.registerHandlers(newSessionHandlers, startHandlers); // , guessModeHandlers, startGameHandlers, guessAttemptHandlers);
+    alexa.execute();
+};
+
+const STATES = {
+    //GUESSMODE: '_GUESSMODE', // User is trying to guess the number.
+    STARTMODE: '_STARTMODE'  // Prompt the user to start or restart the game.
+};
+
+var newSessionHandlers = {
+    'NewSession': findMyIphone,
+    'SessionEndedRequest': function() {}
+};
+
+var startHandlers = Alexa.CreateStateHandler(STATES.STARTMODE, {
+    'SessionEndedRequest': function() { console.log('ending session'); }
+});
+
+function findMyIphone() {
+    const event = this.event;
+    const handler = this.handler;
+    const emit = this.emit
 
     const relationship = event.request.intent.slots.relationship.value;
     const deviceType = event.request.intent.slots.device.value;
     const deviceNameRequested = getDeviceByName(relationship, deviceType);
     console.log('Device Logic', {relationship:relationship, deviceType:deviceType, deviceNameRequested:deviceNameRequested});
 
+    handler.state = STATES.STARTMODE
+
     getIcloud().getFindableDevices(function(err, devices) {
-        if (err) { callback(err, null); }
+        if (err) { 
+            console.log('getFindableDevices error', err);
+            emit(':tell', 'Sorry, I could not retrieve the icloud list of devices');
+        }
         else {
             var namesToDevices = {},
                 deviceResponsePromise
@@ -30,20 +61,11 @@ module.exports.findMyIphone = (event, context, callback) => {
                 deviceResponsePromise = Promise.resolve('I can\'t find ' + deviceNameRequested + ' in ' + devices.map((device) => device.name).join(', '));
             }
 
+            console.log('outsideThis', this);
+            var that = this;
             deviceResponsePromise.then(function(deviceResponse) {
-
-                const response = {
-                  version: '1.0',
-                  response: {
-                    outputSpeech: {
-                      type: 'PlainText',
-                      text: deviceResponse
-                    },
-                    shouldEndSession: true,
-                  },
-                };
-              
-                callback(null, response);
+                console.log('insideThis', that === this, this);
+                emit(':tell', deviceResponse);
             })
 
         }
@@ -75,7 +97,7 @@ module.exports.findMyIphone = (event, context, callback) => {
             });
     }
 
-};
+}
 
 function getIcloud() {
     var icloud = require("find-my-iphone").findmyphone;
