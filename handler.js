@@ -21,7 +21,7 @@ module.exports.findMyIphone = (event, context, callback) => {
             
             devices.forEach(function(device) { namesToDevices[device.name] = device});
             const requestedDevice = namesToDevices[deviceNameRequested];
-	        console.log("requestedDevice", requestedDevice);
+	        console.log("requestedDevice", requestedDevice, namesToDevices);
 
             if (requestedDevice) {
                 requestedDevice.alert();
@@ -56,15 +56,22 @@ module.exports.findMyIphone = (event, context, callback) => {
 
         var ext = config.address.split(' ').join('+');
         var url = "http://maps.google.com/maps/api/geocode/json?address=" + ext;
+        console.log('Trying to get', url);
         return axios.get(url)
             .then(function(response) {
-                    var homeLat = response.data.results[0].geometry.location.lat
-                    var homeLng = response.data.results[0].geometry.location.lng
-                    console.log("Selected Device Location: ", deviceLat, deviceLng, " Home Location: ", homeLat, homeLng);
-                    var distance = geo.getDistanceBetweenTwoCoordinates(deviceLat,deviceLng,homeLat,homeLng, {units:config.distanceUnits}).toFixed(1);
-                    var distanceString = 'I\'m playing a sound on ' + deviceNameRequested + ', which is ' + distance + ' miles from here';
-                    console.log('distanceString', distanceString);
-                    return distanceString;
+                    console.log('Got maps response', response);
+
+                    if (response.data.status === 'ZERO_RESULTS') {
+                        return 'I found the device, but Google Maps can not find ' + config.address;
+                    } else {
+                        var homeLat = response.data.results[0].geometry.location.lat
+                        var homeLng = response.data.results[0].geometry.location.lng
+                        console.log("Selected Device Location: ", deviceLat, deviceLng, " Home Location: ", homeLat, homeLng);
+                        var distance = geo.getDistanceBetweenTwoCoordinates(deviceLat,deviceLng,homeLat,homeLng, {units:config.distanceUnits}).toFixed(1);
+                        var distanceString = 'I\'m playing a sound on ' + deviceNameRequested + ', which is ' + distance + ' miles from here';
+                        console.log('distanceString', distanceString);
+                        return distanceString;
+                    }
             });
     }
 
