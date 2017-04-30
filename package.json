@@ -1,7 +1,7 @@
 {
   "name": "find-my-iphone-alexa",
   "version": "1.0.0",
-  "description": "",
+  "description": "The goal of this skill is to be able to find your phone with ease. If you can't find your device, simply say `\"Alexa, ask locator to find my phone\"`. ## Setup To begin setting up this skill, you must create an Amazon Developer account. Click [here](https://developer.amazon.com/edw/home.html) to access the Amazon Developer Console and begin the skill creation. Select \"Get Started\" under \"Alexa Skills Kit\" and follow the instructions to setup your skill.",
   "main": "handler.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,5 +12,14 @@
     "alexa-sdk": "^1.0.9",
     "axios": "^0.15.3",
     "find-my-iphone": "^1.1.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skylerspaeth/find-my-iphone-alexa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/skylerspaeth/find-my-iphone-alexa/issues"
+  },
+  "homepage": "https://github.com/skylerspaeth/find-my-iphone-alexa#readme"
 }
