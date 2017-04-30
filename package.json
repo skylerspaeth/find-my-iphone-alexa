@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "alexa-sdk": "^1.0.9",
     "axios": "^0.15.3",
     "find-my-iphone": "^1.1.1"
   }
