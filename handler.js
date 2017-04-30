@@ -25,13 +25,44 @@ var newSessionHandlers = {
 };
 
 var startHandlers = Alexa.CreateStateHandler(STATES.STARTMODE, {
+    'AMAZON.YesIntent': function() {
+        const emit = this.emit;
+        const attributes = this.attributes;
+
+        getIcloud().getFindableDevicesByName(function(err, namesToDevices) {
+            if (err) {
+                console.log('getFindableDevices error', err);
+                emit(':tell', 'Sorry, I could not retrieve the icloud list of devices');
+            } else {
+                const requestedDevice = namesToDevices[attributes['deviceName']];
+                if (requestedDevice) {
+                    requestedDevice.alert((err) => {
+                        if (err) {
+                            emit(':tell', 'Sorry, I could not make the device play a sound');
+                        } else {
+                            emit(':tell', 'The device is playing a sound');
+                        }
+                    });
+                } else {
+                    emit(':tell', 'I can\'t find ' + deviceNameRequested + ' in ' + Object.keys(namesToDevices).join(', '));
+                }
+            }
+        });
+    },
+    'AMAZON.NoIntent': function() {
+        this.emit(':tell', 'Okay, bye');
+    },
+    'Unhandled': function() {
+        console.log('Unhandled intent', this.event.request.intent);
+    },
     'SessionEndedRequest': function() { console.log('ending session'); }
 });
 
 function findMyIphone() {
     const event = this.event;
     const handler = this.handler;
-    const emit = this.emit
+    const emit = this.emit;
+    const attributes = this.attributes;
 
     const relationship = event.request.intent.slots.relationship.value;
     const deviceType = event.request.intent.slots.device.value;
@@ -40,32 +71,27 @@ function findMyIphone() {
 
     handler.state = STATES.STARTMODE
 
-    getIcloud().getFindableDevices(function(err, devices) {
+    getIcloud().getFindableDevicesByName(function(err, namesToDevices) {
         if (err) { 
             console.log('getFindableDevices error', err);
             emit(':tell', 'Sorry, I could not retrieve the icloud list of devices');
         }
         else {
-            var namesToDevices = {},
-                deviceResponsePromise
-            ;
+            var deviceResponsePromise;
             
-            devices.forEach(function(device) { namesToDevices[device.name] = device});
             const requestedDevice = namesToDevices[deviceNameRequested];
 	        console.log("requestedDevice", requestedDevice, namesToDevices);
 
             if (requestedDevice) {
-                requestedDevice.alert();
                 deviceResponsePromise = makeDeviceResponse(requestedDevice);
             } else {
-                deviceResponsePromise = Promise.resolve('I can\'t find ' + deviceNameRequested + ' in ' + devices.map((device) => device.name).join(', '));
+                deviceResponsePromise = Promise.resolve('I can\'t find ' + deviceNameRequested + ' in ' + Object.keys(namesToDevices).join(', '));
             }
 
-            console.log('outsideThis', this);
-            var that = this;
             deviceResponsePromise.then(function(deviceResponse) {
-                console.log('insideThis', that === this, this);
-                emit(':tell', deviceResponse);
+                const message = deviceResponse + ' Would you like the device to play a sound?';
+                attributes['deviceName'] = deviceNameRequested;
+                emit(':ask', message, message);
             })
 
         }
@@ -84,13 +110,13 @@ function findMyIphone() {
                     console.log('Got maps response', response);
 
                     if (response.data.status === 'ZERO_RESULTS') {
-                        return 'I found the device, but Google Maps can not find ' + config.address;
+                        return 'I found the device, but Google Maps can not find ' + config.address + '.';
                     } else {
                         var homeLat = response.data.results[0].geometry.location.lat
                         var homeLng = response.data.results[0].geometry.location.lng
                         console.log("Selected Device Location: ", deviceLat, deviceLng, " Home Location: ", homeLat, homeLng);
                         var distance = geo.getDistanceBetweenTwoCoordinates(deviceLat,deviceLng,homeLat,homeLng, {units:config.distanceUnits}).toFixed(1);
-                        var distanceString = 'I\'m playing a sound on ' + deviceNameRequested + ', which is ' + distance + ' miles from here';
+                        var distanceString = deviceNameRequested + ' is ' + distance + ' miles from here.';
                         console.log('distanceString', distanceString);
                         return distanceString;
                     }
@@ -106,7 +132,8 @@ function getIcloud() {
 
     return {
         getDevices: getDevices,
-        getFindableDevices: getFindableDevices
+        getFindableDevices: getFindableDevices,
+        getFindableDevicesByName: getFindableDevicesByName
     };
 
     function getDevices(callback) { // must take (error, devices)
@@ -114,9 +141,10 @@ function getIcloud() {
             if (error) { callback(error, null); }
             else {
                 devices.forEach(function(device) {
-                    device.alert = function() {
+                    device.alert = function(callback) {
                         icloud.alertDevice(device.id, function(err) {
-                            if (err) { console.log('err', err); }
+                            if (err) { callback(err); }
+                            else { callback(null); }
                             console.log('Beeping', device.name);
                         });
                     };
@@ -131,6 +159,17 @@ function getIcloud() {
             if (error) { callback(error, null); }
             else {
                 callback(null, devices.filter(function(d) { return d !== undefined && d.location && d.lostModeCapable; }));
+            }
+        });
+    }
+
+    function getFindableDevicesByName(callback) {
+        getFindableDevices((err, devices) => {
+            if (err) { callback(err, null); }
+            else {
+                var namesToDevices = {};
+                devices.forEach(function(device) { namesToDevices[device.name] = device});
+                callback(null, namesToDevices);
             }
         });
     }
