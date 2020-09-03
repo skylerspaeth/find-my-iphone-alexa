@@ -1,6 +1,6 @@
 # Find my iPhone Alexa Skill
 The goal of this skill is to be able to find your phone with ease.
-If you can't find your device, simply say `"Alexa, ask locator to find my phone"`.
+If you can't find your device, simply say `"Alexa, ask locator to find my phone"`, and your phone will make a noise to alert you of its location, even when the ringer is set to silent.
 ## Setup
 To begin setting up this skill, you must create an Amazon Developer account.
 Click [here](https://developer.amazon.com/edw/home.html) to access the Amazon Developer Console and begin the skill creation.
